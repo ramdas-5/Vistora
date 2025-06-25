@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vistora</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    @keyframes fadeInSlide {
+      0% { opacity: 0; transform: translateY(-10px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-fadeInSlide {
+      animation: fadeInSlide 0.5s ease-out forwards;
+    }
+
+    .nav-link {
+      position: relative;
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+
+    .nav-link::after {
+      content: "";
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: #ec4899;
+      transition: width 0.3s ease-in-out;
+    }
+
+    .nav-link:hover::after {
+      width: 100%;
+    }
+
+    .logout:hover {
+      color: #f87171;
+    }
+
+    .gradient-text {
+      background: linear-gradient(to right, #ec4899, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+  </style>
+</head>
+
+<body class="bg-zinc-800 text-white">
+
+<% if (navbar === true) { %>
+  <nav class="w-full bg-zinc-800 px-6 py-4 shadow-lg border-b border-zinc-700 z-50">
+    <div class="max-w-7xl mx-auto flex justify-between items-center animate-fadeInSlide">
+
+      <!-- Logo (links to landing page) -->
+      <a href="/" class="text-2xl font-bold tracking-tight gradient-text hover:opacity-90 transition duration-300">
+        Vistora
+      </a>
+
+      <!-- Desktop Links -->
+      <div class="hidden md:flex space-x-8 text-sm font-semibold text-zinc-200">
+        <% if (user) { %>
+          <a href="/profile" class="nav-link">Profile</a>
+          <a href="/feed" class="nav-link">Feed</a>
+          <a href="/logout" class="nav-link logout">Logout</a>
+        <% } else { %>
+          <a href="/login" class="nav-link">Login</a>
+          <a href="/register" class="nav-link">Sign Up</a>
+        <% } %>
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <div class="md:hidden">
+        <button id="menuBtn" class="text-white focus:outline-none">
+          <i class="ri-menu-line text-2xl"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Dropdown Menu -->
+    <div id="mobileMenu"
+         class="md:hidden mt-4 px-4 space-y-3 hidden text-sm font-semibold text-zinc-200 animate-fadeInSlide">
+      <% if (user) { %>
+        <a href="/profile" class="block nav-link">Profile</a>
+        <a href="/feed" class="block nav-link">Feed</a>
+        <a href="/logout" class="block nav-link logout">Logout</a>
+      <% } else { %>
+        <a href="/login" class="block nav-link">Login</a>
+        <a href="/register" class="block nav-link">Sign Up</a>
+      <% } %>
+    </div>
+  </nav>
+<% } %>
+
+<script>
+  document.getElementById("menuBtn")?.addEventListener("click", function () {
+    const menu = document.getElementById("mobileMenu");
+    menu.classList.toggle("hidden");
+  });
+</script>

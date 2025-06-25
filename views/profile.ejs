@@ -1,0 +1,166 @@
+<% include ./partials/header.ejs %>
+
+<!-- Profile Page -->
+<div class="min-h-screen bg-zinc-900 text-white py-10 font-sans animate-fadeIn">
+  <!-- Hidden File Upload Form -->
+  <form id="uploadform" hidden action="/fileupload" method="POST" enctype="multipart/form-data">
+    <input type="file" name="image" />
+  </form>
+
+  <!-- Profile Info -->
+  <div class="flex flex-col items-center">
+    <!-- Profile Image -->
+    <div class="relative group">
+      <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-pink-500 shadow-lg transition-all duration-300 group-hover:scale-105">
+        <img src="/images/uploads/<%= user.profileImage %>" class="w-full h-full object-cover" />
+      </div>
+      <span id="uploadicon"
+        class="absolute bottom-0 right-0 bg-pink-500 text-white p-2 rounded-full shadow-md cursor-pointer hover:bg-pink-400 transition-all">
+        <i class="ri-pencil-fill"></i>
+      </span>
+    </div>
+
+    <!-- Name & Username -->
+    <h1 class="text-3xl font-bold mt-4 tracking-tight text-white animate-fadeInUp"><%= user.name %></h1>
+    <p class="text-zinc-400">@<%= user.username %></p>
+
+    <!-- Action Buttons -->
+    <div class="mt-6 flex gap-4">
+      <a href="/edit"
+        class="px-5 py-2 rounded-full bg-zinc-700 hover:bg-zinc-600 transition-all text-sm font-medium shadow-md">
+        Edit Profile
+      </a>
+      <a href="/add"
+        class="px-5 py-2 rounded-full bg-pink-600 hover:bg-pink-500 transition-all text-sm font-medium shadow-md">
+        + Add Post
+      </a>
+    </div>
+  </div>
+
+  <!-- Pins Display -->
+  <% if (user.posts.length > 0 || user.boards.length > 0) { %>
+  <div class="flex flex-wrap justify-center mt-16 gap-8 px-8">
+    <% if (user.posts.length > 0) { %>
+    <!-- All Pins -->
+    <div class="w-56">
+      <a href="/show/posts"
+        class="block rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 group">
+        <img src="/images/uploads/<%= user.posts[0].image %>"
+          class="w-full h-40 object-cover group-hover:brightness-110 transition duration-300" />
+      </a>
+      <a href="/show/posts"
+        class="mt-2 block text-lg font-semibold hover:underline hover:text-pink-400 transition">
+        All Pins
+      </a>
+      <p class="text-sm text-zinc-400"><%= user.posts.length %> Pins</p>
+    </div>
+    <% } %>
+
+    <!-- Boards -->
+    <% user.boards.forEach((board, index) => { %>
+    <div class="w-56">
+      <a href="/show/pin/<%= index %>"
+        class="block rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 group">
+        <% if (board.posts.length > 0) { %>
+        <img src="/images/uploads/<%= board.posts[0].image %>"
+          class="w-full h-40 object-cover group-hover:brightness-110 transition duration-300" />
+        <% } else { %>
+        <div
+          class="w-full h-40 bg-zinc-700 flex items-center justify-center text-zinc-400 font-medium text-sm rounded">
+          No Posts
+        </div>
+        <% } %>
+      </a>
+      <a href="/show/pin/<%= index %>"
+        class="mt-2 block text-lg font-semibold hover:underline hover:text-pink-400 transition">
+        <%= board.name %>
+      </a>
+      <p class="text-sm text-zinc-400"><%= board.posts.length %> Posts</p>
+
+      <!-- Delete Pin Button -->
+      <button onclick="confirmPinDelete('<%= encodeURIComponent(board.name) %>')"
+        class="text-xs mt-1 text-red-400 hover:text-red-500 transition">
+        <i class="ri-delete-bin-line mr-1"></i>Delete Pin
+      </button>
+    </div>
+    <% }) %>
+  </div>
+  <% } else { %>
+  <p class="text-center mt-10 text-zinc-400">No pins created yet. Start by posting something!</p>
+  <% } %>
+</div>
+
+<!-- Modal -->
+<div id="deletePinModal"
+  class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center animate-fadeIn">
+  <div
+    class="bg-zinc-800 border border-zinc-700 p-6 rounded-xl shadow-xl max-w-md w-full mx-4 animate-modalPop">
+    <h2 class="text-lg font-bold mb-4 text-white">Delete Pin?</h2>
+    <p class="text-sm text-zinc-400 mb-4">This action cannot be undone.</p>
+    <form id="deletePinForm" method="POST">
+      <div class="flex justify-end gap-4">
+        <button type="button" onclick="closePinModal()"
+          class="px-4 py-2 text-sm bg-zinc-600 hover:bg-zinc-500 rounded">
+          Cancel
+        </button>
+        <button type="submit"
+          class="px-4 py-2 text-sm bg-red-600 hover:bg-red-500 rounded text-white font-medium">
+          Delete
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- JS -->
+<script>
+  document.querySelector('#uploadicon').addEventListener('click', () => {
+    document.querySelector('#uploadform input').click();
+  });
+
+  document.querySelector('#uploadform input').addEventListener('change', () => {
+    document.querySelector("#uploadform").submit();
+  });
+
+  function confirmPinDelete(pinName) {
+    const form = document.getElementById('deletePinForm');
+    form.action = `/deletepin/${pinName}`;
+    document.getElementById('deletePinModal').classList.remove('hidden');
+  }
+
+  function closePinModal() {
+    document.getElementById('deletePinModal').classList.add('hidden');
+  }
+</script>
+
+<!-- Animations -->
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes modalPop {
+    0% { opacity: 0; transform: scale(0.9); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.8s ease-out forwards;
+  }
+
+  .animate-fadeInUp {
+    animation: fadeInUp 0.6s ease-out forwards;
+  }
+
+  .animate-modalPop {
+    animation: modalPop 0.4s ease-out forwards;
+  }
+</style>
+
+<% include ./partials/footer.ejs %>

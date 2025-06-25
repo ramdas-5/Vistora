@@ -1,0 +1,65 @@
+<% include ./partials/header.ejs %>
+
+<div class="w-full min-h-screen bg-zinc-800 px-6 md:px-20 py-10 text-white font-sans">
+  <div class="max-w-5xl mx-auto flex flex-col md:flex-row gap-10 bg-zinc-900/70 backdrop-blur-md p-10 rounded-2xl shadow-xl border border-zinc-700 animate-fadeSlideUp">
+
+    <!-- Form Section -->
+    <div class="flex-1">
+      <h1 class="text-3xl font-bold mb-4 text-pink-400 tracking-tight">Create a New Post</h1>
+      <hr class="opacity-10 mb-6">
+
+      <form action="/createpost" method="POST" enctype="multipart/form-data" class="flex flex-col gap-6">
+        <!-- File Upload -->
+        <label id="uploadArea" class="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-zinc-500 rounded-xl cursor-pointer hover:border-pink-500 hover:shadow-md transition-all duration-300 relative overflow-hidden">
+          <div id="uploadText" class="flex flex-col items-center justify-center pt-5 pb-6 z-10">
+            <i class="ri-image-add-line text-3xl mb-2 text-zinc-400 group-hover:text-pink-400 transition"></i>
+            <p class="mb-2 text-sm text-zinc-400"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+          </div>
+          <input type="file" name="postimage" id="imageInput" class="hidden" required />
+        </label>
+
+        <!-- Title -->
+        <input type="text" name="title" placeholder="Enter a title..." required class="bg-zinc-800 border border-zinc-600 rounded-lg px-5 py-3 text-white placeholder-zinc-400" />
+
+        <!-- Description -->
+        <textarea name="description" placeholder="Write a short description..." rows="4" required class="bg-zinc-800 border border-zinc-600 rounded-lg px-5 py-3 text-white placeholder-zinc-400 resize-none"></textarea>
+
+        <!-- Existing Pin Selection -->
+        <label class="text-sm font-semibold">Select Existing Pin (optional):</label>
+        <select name="existingPin" class="bg-zinc-800 border border-zinc-600 rounded-lg px-4 py-2 text-white">
+          <option value="">-- None --</option>
+          <% user.boards.forEach(pin => { %>
+            <option value="<%= pin.name %>"><%= pin.name %></option>
+          <% }) %>
+        </select>
+
+        <!-- OR Create New Pin -->
+        <input type="text" name="newPin" placeholder="Or enter a new pin name..." class="bg-zinc-800 border border-zinc-600 rounded-lg px-5 py-3 text-white placeholder-zinc-400" />
+
+        <!-- Submit -->
+        <button type="submit" class="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300">
+          <i class="ri-upload-cloud-line mr-2 text-lg align-middle"></i>Post Now
+        </button>
+      </form>
+    </div>
+
+    <!-- Image Preview -->
+    <div class="flex-1 flex items-center justify-center">
+      <img id="previewImg" class="max-h-[300px] w-auto rounded-xl hidden border border-zinc-700 shadow-md" />
+    </div>
+  </div>
+</div>
+
+<% include ./partials/footer.ejs %>
+
+<script>
+  const imageInput = document.getElementById('imageInput');
+  const previewImg = document.getElementById('previewImg');
+  imageInput.addEventListener('change', function () {
+    const file = this.files[0];
+    if (file) {
+      previewImg.src = URL.createObjectURL(file);
+      previewImg.classList.remove('hidden');
+    }
+  });
+</script>

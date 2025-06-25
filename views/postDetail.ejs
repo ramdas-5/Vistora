@@ -1,0 +1,203 @@
+<% include ./partials/header.ejs %>
+
+<!-- Custom Animations -->
+<style>
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes scalePop {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-fadeInUp {
+    animation: fadeInUp 0.7s ease-out both;
+  }
+
+  .animate-scalePop {
+    animation: scalePop 0.6s ease-out both;
+  }
+
+  .animate-fadeSlide {
+    animation: fadeSlide 0.6s ease-out both;
+  }
+
+  .hidden { display: none; }
+
+  .edit-box textarea {
+    background: #1e1e1e;
+    color: white;
+    border: 1px solid #444;
+    width: 100%;
+    padding: 6px 10px;
+    border-radius: 8px;
+  }
+
+  #deleteModal > div {
+    animation: scalePop 0.3s ease-out;
+  }
+</style>
+
+<!-- Main Container -->
+<div class="min-h-screen bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900 text-white px-6 py-14">
+  <div class="max-w-3xl mx-auto bg-zinc-800 border border-zinc-700 rounded-xl p-8 shadow-lg animate-fadeInUp">
+
+    <!-- Post Title -->
+    <h1 class="text-4xl font-bold text-center text-pink-400 tracking-tight mb-6">
+      <%= post.title %>
+    </h1>
+
+    <!-- Post Image -->
+    <div class="flex justify-center mb-6 animate-scalePop">
+      <img src="/images/uploads/<%= post.image %>" alt="" class="rounded-xl max-h-[400px] shadow-lg hover:shadow-pink-500/40 transition duration-500">
+    </div>
+
+    <!-- Post Description -->
+    <p class="text-center text-zinc-300 text-lg leading-relaxed mb-4 animate-fadeSlide"><%= post.description %></p>
+
+    <!-- Posted By -->
+    <p class="text-center text-sm text-zinc-400 mb-6 animate-fadeSlide">
+      Posted by 
+      <a href="/profile/<%= post.user.username %>" class="text-pink-400 hover:text-pink-300 hover:underline transition">@<%= post.user.username %></a>
+    </p>
+
+    <!-- Like Button -->
+    <form method="POST" action="/like/<%= post._id %>" class="text-center mb-4">
+      <button type="submit" class="text-pink-400 hover:text-pink-300 transition text-lg">
+        <i class="ri-heart-line"></i> Like (<%= post.likes.length %>)
+      </button>
+    </form>
+
+    <!-- Likes Toggle -->
+    <% if (post.likes.length > 0) { %>
+    <div class="text-center mb-6">
+      <button onclick="toggleLikes()" class="text-sm underline text-pink-300 hover:text-pink-400 transition">
+        Show/Hide Likes
+      </button>
+      <div id="likeList" class="mt-2 hidden">
+        <% post.likes.forEach(user => { %>
+          <a href="/profile/<%= user.username %>" class="block text-sm text-white hover:text-pink-400 hover:underline transition">@<%= user.username %></a>
+        <% }) %>
+      </div>
+    </div>
+    <% } %>
+
+    <!-- Comment Form -->
+    <form action="/comment/<%= post._id %>" method="POST" class="mb-10 animate-fadeSlide">
+      <textarea name="text" required rows="3" placeholder="Write your comment..." 
+        class="w-full p-3 rounded bg-zinc-700 text-white focus:ring-2 focus:ring-pink-500 resize-none transition">
+      </textarea>
+      <button type="submit" class="mt-3 px-4 py-2 bg-pink-600 hover:bg-pink-500 rounded transition font-semibold">Post Comment</button>
+    </form>
+
+    <!-- Comments Section -->
+    <div>
+      <h3 class="text-2xl font-bold text-pink-400 mb-5">Comments</h3>
+      <% post.comments.forEach(comment => { %>
+      <div class="bg-zinc-800 border border-zinc-700 rounded p-4 mb-4 animate-fadeSlide">
+        <!-- Comment Text -->
+        <p>
+          <a href="/profile/<%= comment.user.username %>" class="text-pink-400 font-medium hover:underline">@<%= comment.user.username %></a>
+          <span id="comment-text-<%= comment._id %>" class="text-zinc-300 inline"><%= comment.text %></span>
+          <% if (comment.edited) { %><span class="text-xs text-zinc-400 ml-1">(edited)</span><% } %>
+        </p>
+        <p class="text-xs text-zinc-500 mt-1"><%= new Date(comment.createdAt).toLocaleString() %></p>
+
+        <!-- Comment Controls -->
+        <% if (comment.user._id.toString() === user._id.toString()) { %>
+          <div class="flex gap-2 mt-2 text-sm">
+            <button class="text-pink-400 hover:text-pink-300" onclick="toggleEditComment('<%= comment._id %>')">🖉 Edit</button>
+            <button class="text-red-400 hover:text-red-300" onclick="showDeleteModal('<%= post._id %>', '<%= comment._id %>')">🗑️ Delete</button>
+          </div>
+
+          <!-- Edit Form -->
+          <form id="edit-form-<%= comment._id %>" method="POST" action="/edit-comment/<%= post._id %>/<%= comment._id %>" class="edit-box hidden mt-2">
+            <textarea name="text"><%= comment.text %></textarea>
+            <button type="submit" class="mt-2 bg-pink-500 hover:bg-pink-400 px-2 py-1 rounded text-xs">Save</button>
+          </form>
+        <% } %>
+
+        <!-- Reply Form -->
+        <form action="/reply-comment/<%= post._id %>/<%= comment._id %>" method="POST" class="mt-3">
+          <input name="text" required placeholder="Reply..." 
+            class="w-full bg-zinc-700 rounded p-2 text-sm text-white focus:ring-pink-500 focus:outline-none">
+          <button type="submit" class="mt-1 text-xs text-pink-400 hover:text-pink-300">Reply</button>
+        </form>
+
+        <!-- Replies -->
+        <% if (comment.replies.length > 0) { %>
+          <div class="ml-4 mt-4 space-y-2">
+            <% comment.replies.forEach(reply => { %>
+              <div class="bg-zinc-700 p-3 rounded animate-fadeSlide">
+                <a href="/profile/<%= reply.user.username %>" class="text-pink-300 font-medium hover:underline">@<%= reply.user.username %></a>
+                <span id="reply-text-<%= reply._id %>" class="text-white text-sm inline ml-1"><%= reply.text %></span>
+                <p class="text-xs text-zinc-400 mt-1"><%= new Date(reply.createdAt).toLocaleString() %></p>
+
+                <% if (reply.user._id.toString() === user._id.toString()) { %>
+                  <button class="text-xs text-pink-300 mt-1" onclick="toggleEditReply('<%= reply._id %>')">🖉 Edit</button>
+                  <form id="edit-reply-form-<%= reply._id %>" method="POST" action="/edit-reply/<%= post._id %>/<%= comment._id %>/<%= reply._id %>" class="edit-box hidden mt-1">
+                    <textarea name="text"><%= reply.text %></textarea>
+                    <button type="submit" class="bg-pink-400 hover:bg-pink-300 px-2 py-1 rounded text-xs mt-1">Save</button>
+                  </form>
+                <% } %>
+              </div>
+            <% }) %>
+          </div>
+        <% } %>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center hidden z-50">
+  <div class="bg-zinc-800 p-6 rounded-lg border border-zinc-600 w-80 shadow-xl">
+    <h2 class="text-xl font-semibold mb-2 text-white">Delete Comment?</h2>
+    <p class="text-sm text-zinc-400 mb-4">Are you sure you want to permanently delete this comment?</p>
+    <div class="flex justify-end gap-3">
+      <button onclick="closeModal()" class="text-sm px-3 py-1 border border-zinc-400 rounded hover:bg-zinc-700">Cancel</button>
+      <form id="deleteCommentForm" method="POST">
+        <button type="submit" class="px-3 py-1 text-sm bg-red-600 hover:bg-red-500 text-white rounded">Delete</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleLikes() {
+    document.getElementById("likeList").classList.toggle("hidden");
+  }
+
+  function toggleEditComment(id) {
+    document.getElementById(`edit-form-${id}`).classList.toggle('hidden');
+    document.getElementById(`comment-text-${id}`).classList.toggle('hidden');
+  }
+
+  function toggleEditReply(id) {
+    document.getElementById(`edit-reply-form-${id}`).classList.toggle('hidden');
+    document.getElementById(`reply-text-${id}`).classList.toggle('hidden');
+  }
+
+  function showDeleteModal(postId, commentId) {
+    document.getElementById('deleteCommentForm').action = `/delete-comment/${postId}/${commentId}`;
+    document.getElementById('deleteModal').classList.remove('hidden');
+  }
+
+  function closeModal() {
+    document.getElementById('deleteModal').classList.add('hidden');
+  }
+
+  document.getElementById('deleteModal').addEventListener('click', function (e) {
+    if (e.target === this) closeModal();
+  });
+</script>
+
+<% include ./partials/footer.ejs %>
