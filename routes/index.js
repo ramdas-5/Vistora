@@ -4,6 +4,9 @@ const passport = require('passport');
 const userModel = require('./users');
 const postModel = require('./post');
 const upload = require('./multer');
+const path = require('path');
+const fs = require('fs');
+
 
 // Middleware
 function isLoggedIn(req, res, next) {
