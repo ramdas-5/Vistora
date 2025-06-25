@@ -155,8 +155,11 @@ router.get('/add', isLoggedIn, async (req, res) => {
 router.post('/createpost', isLoggedIn, upload.single('postimage'), async (req, res) => {
   try {
     const user = await userModel.findById(req.user._id);
-    
     if (!user) return res.status(404).send('User not found');
+
+    if (!req.file) {
+      return res.status(400).send('Image not uploaded');
+    }
 
     const post = new postModel({
       user: user._id,
@@ -165,8 +168,8 @@ router.post('/createpost', isLoggedIn, upload.single('postimage'), async (req, r
       image: req.file.filename
     });
 
-    await post.save(); // ✅ Save post first
-    user.posts.push(post._id); // ✅ Add post to user's posts array
+    await post.save();
+    user.posts.push(post._id);
 
     const pinName = req.body.newPin || req.body.existingPin;
     if (pinName) {
@@ -178,14 +181,13 @@ router.post('/createpost', isLoggedIn, upload.single('postimage'), async (req, r
       }
     }
 
-    await user.save(); // ✅ Save user after board/post assignment
+    await user.save();
     res.redirect('/profile');
   } catch (err) {
     console.error("Create post error:", err);
     res.status(500).send('Internal Server Error');
   }
 });
-
 
 router.post('/deletepinpost/:pinName/:postId', isLoggedIn, async (req, res) => {
   const { pinName, postId } = req.params;
