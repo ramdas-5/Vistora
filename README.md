@@ -95,7 +95,7 @@ npm install
 Create a `.env` file at the root level and add your MongoDB URI and session secret:
 
 ```env
-MONGO_URI=mongodb+srv://ramdas05:Paban05@vistora.kqnywih.mongodb.net/
+MONGO_URI= your_db
 SESSION_SECRET=yourSessionSecret
 ```
 
@@ -123,7 +123,6 @@ Your app should now run at:
 
 ## ✅ TODO (Future Enhancements)
 
-- [ ] Dark mode toggle  
 - [ ] Save posts to favorites  
 - [ ] Search functionality  
 - [ ] Notification system for replies/likes  

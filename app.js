@@ -27,10 +27,11 @@ app.use('/images', express.static(path.join(__dirname, 'images'))); // For /imag
 
 // Session and Passport
 app.use(session({
-  secret: 'hello', // Consider using a secure env variable in production
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false
 }));
+
 
 app.use(passport.initialize());
 app.use(passport.session());
