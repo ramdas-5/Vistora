@@ -77,14 +77,28 @@ router.get('/edit', isLoggedIn, async (req, res) => {
 });
 
 router.post('/edit', isLoggedIn, async (req, res) => {
-  const user = await userModel.findById(req.user._id);
-  user.name = req.body.name;
-  user.username = req.body.username;
-  user.contact = req.body.contact;
-  await user.save();
-  await req.logout();
-  res.redirect('/login');
+  try {
+    const user = await userModel.findById(req.user._id);
+    if (!user) return res.status(404).send("User not found");
+
+    user.name = req.body.name;
+    user.username = req.body.username;
+    user.contact = req.body.contact;
+    await user.save();
+
+    req.logout((err) => {
+      if (err) {
+        console.error("Logout error:", err);
+        return res.status(500).send("Logout failed.");
+      }
+      return res.redirect('/login');
+    });
+  } catch (err) {
+    console.error("Edit profile error:", err);
+    res.status(500).send("Error updating profile.");
+  }
 });
+
 
 router.post('/fileupload', isLoggedIn, upload.single('image'), async (req, res) => {
   const user = await userModel.findById(req.user._id);
