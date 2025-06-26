@@ -201,7 +201,6 @@ router.post('/deletepinpost/:pinName/:postId', isLoggedIn, async (req, res) => {
 
   try {
     const user = await userModel.findById(req.user._id).populate('posts');
-
     const board = user.boards.find(b => b.name === pinName);
     if (!board) return res.status(404).send("Pin not found");
 
@@ -214,18 +213,14 @@ router.post('/deletepinpost/:pinName/:postId', isLoggedIn, async (req, res) => {
     ) || user.posts.some(p => p.toString() === postId);
 
     if (!isStillReferenced) {
-      // Remove the post from MongoDB and delete image
+      // 3. Delete post and Cloudinary image
       const post = await postModel.findByIdAndDelete(postId);
-
-      if (post && post.image) {
-        const imagePath = path.join(__dirname, '../public/images/uploads', post.image);
-        fs.unlink(imagePath, err => {
-          if (err) console.error('Failed to delete image:', err);
-        });
+      if (post && post.imagePublicId) {
+        await cloudinary.uploader.destroy(post.imagePublicId);
       }
     }
 
-    // 3. Save user after modification
+    // 4. Save updated user
     await user.save();
 
     res.redirect(`/show/pin/${user.boards.findIndex(b => b.name === pinName)}`);
@@ -234,6 +229,7 @@ router.post('/deletepinpost/:pinName/:postId', isLoggedIn, async (req, res) => {
     res.status(500).send("Server error");
   }
 });
+
 
 
 
