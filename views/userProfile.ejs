@@ -2,25 +2,13 @@
 
 <style>
   @keyframes fadeInUp {
-    0% {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    0% { opacity: 0; transform: translateY(30px); }
+    100% { opacity: 1; transform: translateY(0); }
   }
 
   @keyframes zoomIn {
-    0% {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    100% {
-      opacity: 1;
-      transform: scale(1);
-    }
+    0% { opacity: 0; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1); }
   }
 
   .animate-fadeInUp {
@@ -38,7 +26,7 @@
     <!-- Profile Header -->
     <div class="text-center mb-10">
       <% if (user.profileImage) { %>
-        <img src="/images/uploads/<%= user.profileImage %>"
+        <img src="<%= user.profileImage %>"
              alt="Profile Picture"
              class="w-28 h-28 object-cover rounded-full border-4 border-pink-500 mx-auto mb-4 shadow-md" />
       <% } else { %>
@@ -58,7 +46,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
         <% user.posts.forEach(post => { %>
           <div class="bg-zinc-800 border border-zinc-700 rounded-xl overflow-hidden shadow-md hover:shadow-pink-500/30 transition duration-300 transform hover:-translate-y-1 hover:scale-105 animate-zoomIn">
-            <img src="/images/uploads/<%= post.image %>" 
+            <img src="<%= post.image %>" 
                  alt="<%= post.title %>" 
                  class="w-full h-44 object-cover rounded-t-xl" />
             <div class="p-4">
