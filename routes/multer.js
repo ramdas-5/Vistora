@@ -1,42 +1,28 @@
 const multer = require('multer');
-const { v4: uuidv4 } = require('uuid');
-const path = require('path');
-const fs = require('fs');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('cloudinary').v2;
+require('dotenv').config();
 
-// Ensure directory exists
-const uploadDir = path.join(__dirname, '../public/images/uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// ✅ Cloudinary config
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
-// Storage setup
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueName = uuidv4() + path.extname(file.originalname);
-    cb(null, uniqueName);
+// ✅ Cloudinary storage setup
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'vistora_posts', // You can change this folder name
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    transformation: [{ width: 1200, height: 1200, crop: 'limit' }]
   }
 });
 
-// File filter (optional)
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|gif/;
-  const ext = path.extname(file.originalname).toLowerCase();
-  const mime = file.mimetype;
-
-  if (allowedTypes.test(ext) && allowedTypes.test(mime)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only image files are allowed!'));
-  }
-};
-
-// Multer instance
+// ✅ Multer middleware
 const upload = multer({
-  storage,
-  fileFilter,
+  storage: storage,
   limits: { fileSize: 5 * 1024 * 1024 } // Max 5MB
 });
 

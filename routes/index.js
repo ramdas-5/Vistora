@@ -160,20 +160,22 @@ router.post('/createpost', isLoggedIn, upload.single('postimage'), async (req, r
     const user = await userModel.findById(req.user._id);
     if (!user) return res.status(404).send('User not found');
 
-    if (!req.file) {
+    if (!req.file || !req.file.path) {
       return res.status(400).send('Image not uploaded');
     }
 
+    // ✅ Save Cloudinary image URL
     const post = new postModel({
       user: user._id,
       title: req.body.title,
       description: req.body.description,
-      image: req.file.filename
+      image: req.file.path // Cloudinary returns full URL here
     });
 
     await post.save();
     user.posts.push(post._id);
 
+    // ✅ Handle pin/board logic
     const pinName = req.body.newPin || req.body.existingPin;
     if (pinName) {
       const board = user.boards.find(b => b.name === pinName);
@@ -191,6 +193,7 @@ router.post('/createpost', isLoggedIn, upload.single('postimage'), async (req, r
     res.status(500).send('Internal Server Error');
   }
 });
+
 
 router.post('/deletepinpost/:pinName/:postId', isLoggedIn, async (req, res) => {
   const { pinName, postId } = req.params;
