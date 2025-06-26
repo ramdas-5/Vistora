@@ -53,6 +53,10 @@ const postSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  imagePublicId: {
+    type: String, // ✅ Cloudinary's internal ID for deletion
+    required: true
+  },
   likes: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'

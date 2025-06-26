@@ -6,6 +6,7 @@ const postModel = require('./post');
 const upload = require('./multer');
 const path = require('path');
 const fs = require('fs');
+const { cloudinary } = require('./cloudinary');
 
 
 // Middleware
@@ -160,22 +161,21 @@ router.post('/createpost', isLoggedIn, upload.single('postimage'), async (req, r
     const user = await userModel.findById(req.user._id);
     if (!user) return res.status(404).send('User not found');
 
-    if (!req.file || !req.file.path) {
+    if (!req.file || !req.file.path || !req.file.filename) {
       return res.status(400).send('Image not uploaded');
     }
 
-    // ✅ Save Cloudinary image URL
     const post = new postModel({
       user: user._id,
       title: req.body.title,
       description: req.body.description,
-      image: req.file.path // Cloudinary returns full URL here
+      image: req.file.path,             // ✅ Cloudinary image URL
+      imagePublicId: req.file.filename  // ✅ Cloudinary image public_id
     });
 
     await post.save();
     user.posts.push(post._id);
 
-    // ✅ Handle pin/board logic
     const pinName = req.body.newPin || req.body.existingPin;
     if (pinName) {
       const board = user.boards.find(b => b.name === pinName);
@@ -193,6 +193,7 @@ router.post('/createpost', isLoggedIn, upload.single('postimage'), async (req, r
     res.status(500).send('Internal Server Error');
   }
 });
+
 
 
 router.post('/deletepinpost/:pinName/:postId', isLoggedIn, async (req, res) => {
@@ -238,15 +239,36 @@ router.post('/deletepinpost/:pinName/:postId', isLoggedIn, async (req, res) => {
 
 
 router.post('/deletepost/:id', isLoggedIn, async (req, res) => {
-  const user = await userModel.findById(req.user._id);
-  user.posts.pull(req.params.id);
-  user.boards.forEach(b => {
-    b.posts = b.posts.filter(p => p.toString() !== req.params.id);
-  });
-  await user.save();
-  await postModel.findByIdAndDelete(req.params.id);
-  res.redirect('/profile');
+  try {
+    const post = await postModel.findById(req.params.id);
+    if (!post) return res.status(404).send("Post not found");
+
+    // ✅ Delete image from Cloudinary
+    if (post.imagePublicId) {
+      await cloudinary.uploader.destroy(post.imagePublicId);
+    }
+
+    // ✅ Remove post reference from user and boards
+    await userModel.updateOne(
+      { _id: req.user._id },
+      {
+        $pull: {
+          posts: post._id,
+          "boards.$[].posts": post._id
+        }
+      }
+    );
+
+    // ✅ Delete post
+    await postModel.findByIdAndDelete(post._id);
+
+    res.redirect('/profile');
+  } catch (err) {
+    console.error("Error deleting post:", err);
+    res.status(500).send("Internal server error");
+  }
 });
+
 
 // --- Pin Routes ---
 router.get('/show/pin/:index', isLoggedIn, async (req, res) => {
