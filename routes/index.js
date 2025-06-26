@@ -87,7 +87,7 @@ router.post('/edit', isLoggedIn, async (req, res) => {
 
 router.post('/fileupload', isLoggedIn, upload.single('image'), async (req, res) => {
   const user = await userModel.findById(req.user._id);
-  user.profileImage = req.file.filename;
+  user.profileImage = req.file.path; // full Cloudinary URL
   await user.save();
   res.redirect('/profile');
 });
