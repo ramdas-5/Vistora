@@ -12,7 +12,7 @@
     <!-- Profile Image -->
     <div class="relative group">
       <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-pink-500 shadow-lg transition-all duration-300 group-hover:scale-105">
-        <img src="/images/uploads/<%= user.profileImage %>" class="w-full h-full object-cover" />
+        <img src="<%= user.profileImage %>" class="w-full h-full object-cover" />
       </div>
       <span id="uploadicon"
         class="absolute bottom-0 right-0 bg-pink-500 text-white p-2 rounded-full shadow-md cursor-pointer hover:bg-pink-400 transition-all">
@@ -45,7 +45,7 @@
     <div class="w-56">
       <a href="/show/posts"
         class="block rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 group">
-        <img src="/images/uploads/<%= user.posts[0].image %>"
+        <img src="<%= user.posts[0].image %>"
           class="w-full h-40 object-cover group-hover:brightness-110 transition duration-300" />
       </a>
       <a href="/show/posts"
@@ -62,7 +62,7 @@
       <a href="/show/pin/<%= index %>"
         class="block rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105 group">
         <% if (board.posts.length > 0) { %>
-        <img src="/images/uploads/<%= board.posts[0].image %>"
+        <img src="<%= board.posts[0].image %>"
           class="w-full h-40 object-cover group-hover:brightness-110 transition duration-300" />
         <% } else { %>
         <div
